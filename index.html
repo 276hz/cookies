@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cookies to bookmarklet login</title>
+    <title>cookies to bookmarklet</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -522,7 +522,7 @@
     <div class="header">
         <h1>
             <span class="pixel">⛏️</span> COOKIE FORGE 
-            <span style="font-size:10px;color:#5a4a6a;">v3.1</span>
+            <span style="font-size:10px;color:#5a4a6a;">v3.2</span>
         </h1>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <span class="badge gold">⚡ BOOKMARKLET</span>
@@ -810,6 +810,7 @@
     function buildBookmarklet(cookies, minified = false) {
         if (!cookies || cookies.length === 0) return '// NO COOKIES';
 
+        // Escape properly for JavaScript string
         const cookieArray = cookies.map(c => {
             const name = c.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
             const value = c.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -923,6 +924,17 @@
             const bookmarklet = buildBookmarklet(cookies, false);
             outputDiv.textContent = bookmarklet;
             updateStats(cookies);
+            
+            // Also update input with formatted version for clarity
+            const formatted = cookies.map(c => {
+                let parts = [c.name + '=' + c.value];
+                if (c.domain) parts.push('domain=' + c.domain);
+                if (c.path) parts.push('path=' + c.path);
+                if (c.secure) parts.push('secure');
+                if (c.expires) parts.push('expires=' + c.expires);
+                return parts.join('; ');
+            }).join('\n');
+            
             statusDiv.textContent = `✅ SUCCESS · ${cookies.length} COOKIES PARSED · BOOKMARKLET READY`;
             statusDiv.className = 'status success';
         } catch (e) {
@@ -945,59 +957,91 @@
             outputDiv.textContent = text;
         }
 
-        navigator.clipboard.writeText(text).then(() => {
-            statusDiv.textContent = '📋 COPIED TO CLIPBOARD!';
-            statusDiv.className = 'status success';
-        }).catch(() => {
-            const range = document.createRange();
-            range.selectNode(outputDiv);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
+        // Try multiple copy methods
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                statusDiv.textContent = '📋 COPIED TO CLIPBOARD!';
+                statusDiv.className = 'status success';
+            }).catch(() => {
+                fallbackCopy(text);
+            });
+        } else {
+            fallbackCopy(text);
+        }
+    }
+    
+    function fallbackCopy(text) {
+        // Create temporary textarea
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        textarea.style.left = '-9999px';
+        textarea.style.top = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
             document.execCommand('copy');
             statusDiv.textContent = '📋 COPIED (fallback)';
-            statusDiv.className = 'status';
-        });
+            statusDiv.className = 'status success';
+        } catch (e) {
+            statusDiv.textContent = '❌ COPY FAILED · SELECT MANUALLY';
+            statusDiv.className = 'status error';
+        }
+        document.body.removeChild(textarea);
     }
 
-    // ===== CLEAR LOGIN (xóa session/login cookies) =====
+    // ===== CLEAR LOGIN =====
     function clearLoginCookies() {
         if (!confirm('⚠️ DELETE ALL SESSION/LOGIN COOKIES FOR CURRENT DOMAIN?')) return;
         
         const cookies = document.cookie.split(';');
         let deleted = 0;
         const domain = location.hostname;
-        const paths = ['/', '/api', '/auth', '/login', '/account', '/dashboard'];
+        const paths = ['/', '/api', '/auth', '/login', '/account', '/dashboard', '/app', '/admin', '/profile', '/settings'];
         
         for (let c of cookies) {
             const eq = c.indexOf('=');
             const name = eq > -1 ? c.substring(0, eq).trim() : c.trim();
             if (!name) continue;
             
-            // Xóa với nhiều path khác nhau
             for (let p of paths) {
-                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + ';';
-                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + '; domain=' + domain + ';';
-                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + '; domain=.' + domain + ';';
-                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + domain + ';';
-                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.' + domain + ';';
-                deleted++;
+                // Xóa với nhiều tổ hợp domain/path
+                const variants = [
+                    { domain: '', path: p },
+                    { domain: domain, path: p },
+                    { domain: '.' + domain, path: p },
+                    { domain: '', path: '/' },
+                    { domain: domain, path: '/' },
+                    { domain: '.' + domain, path: '/' }
+                ];
+                for (let v of variants) {
+                    let cookieStr = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + v.path;
+                    if (v.domain) cookieStr += '; domain=' + v.domain;
+                    document.cookie = cookieStr;
+                    deleted++;
+                }
             }
         }
         
-        // Xóa cả localStorage và sessionStorage liên quan đến login
+        // Xóa localStorage/sessionStorage
         try {
             const keys = Object.keys(localStorage);
             for (let k of keys) {
-                if (k.toLowerCase().includes('token') || k.toLowerCase().includes('session') || 
-                    k.toLowerCase().includes('auth') || k.toLowerCase().includes('login') ||
-                    k.toLowerCase().includes('user') || k.toLowerCase().includes('profile')) {
+                const lower = k.toLowerCase();
+                if (lower.includes('token') || lower.includes('session') || 
+                    lower.includes('auth') || lower.includes('login') ||
+                    lower.includes('user') || lower.includes('profile') ||
+                    lower.includes('credential') || lower.includes('access')) {
                     localStorage.removeItem(k);
                 }
             }
             const sKeys = Object.keys(sessionStorage);
             for (let k of sKeys) {
-                if (k.toLowerCase().includes('token') || k.toLowerCase().includes('session') || 
-                    k.toLowerCase().includes('auth') || k.toLowerCase().includes('login')) {
+                const lower = k.toLowerCase();
+                if (lower.includes('token') || lower.includes('session') || 
+                    lower.includes('auth') || lower.includes('login') ||
+                    lower.includes('credential') || lower.includes('access')) {
                     sessionStorage.removeItem(k);
                 }
             }
@@ -1006,13 +1050,12 @@
         statusDiv.textContent = '🗑️ CLEARED LOGIN COOKIES & TOKENS · RELOADING...';
         statusDiv.className = 'status warning';
         
-        // Reload sau 1.5s
         setTimeout(() => {
             location.reload();
         }, 1500);
     }
 
-    // ===== CLEAR ALL BROWSER COOKIES =====
+    // ===== CLEAR ALL =====
     function clearAllBrowserCookies() {
         if (!confirm('⚠️ DELETE ALL COOKIES FOR THIS DOMAIN?')) return;
         const cookies = document.cookie.split(';');
@@ -1072,7 +1115,6 @@
                         updateStats(currentCookies);
                         const bm = buildBookmarklet(currentCookies, false);
                         outputDiv.textContent = bm;
-                        // Cập nhật input để hiển thị
                         input.value = currentCookies.map(c => {
                             let parts = [c.name + '=' + c.value];
                             if (c.domain) parts.push('domain=' + c.domain);
@@ -1112,11 +1154,12 @@
             return true;
         });
         if (unique.length < currentCookies.length) {
+            const removed = currentCookies.length - unique.length;
             currentCookies = unique;
             updateStats(currentCookies);
             const bm = buildBookmarklet(currentCookies, false);
             outputDiv.textContent = bm;
-            statusDiv.textContent = '🧹 REMOVED ' + (currentCookies.length - unique.length) + ' DUPLICATES';
+            statusDiv.textContent = '🧹 REMOVED ' + removed + ' DUPLICATES';
             statusDiv.className = 'status success';
         } else {
             statusDiv.textContent = '✅ NO DUPLICATES FOUND';
@@ -1204,10 +1247,15 @@
             statusDiv.className = 'status error';
             return;
         }
-        const encoded = btoa(unescape(encodeURIComponent(raw)));
-        input.value = encoded;
-        statusDiv.textContent = '🔐 ENCODED TO BASE64';
-        statusDiv.className = 'status success';
+        try {
+            const encoded = btoa(unescape(encodeURIComponent(raw)));
+            input.value = encoded;
+            statusDiv.textContent = '🔐 ENCODED TO BASE64';
+            statusDiv.className = 'status success';
+        } catch(e) {
+            statusDiv.textContent = '❌ ENCODE ERROR: ' + e.message;
+            statusDiv.className = 'status error';
+        }
     }
 
     function base64Decode() {
@@ -1252,12 +1300,12 @@
     });
 
     sampleBtn.addEventListener('click', function() {
-        input.value = `__ssid=abc123xyz; domain=.example.com; path=/; secure; expires=1814820331
-sessionKey=sk-test-12345; domain=.example.com; path=/; secure
-_fbp=fb.1.1234567890.1234567890; domain=.example.com; path=/; secure; expires=1814820330
-intercom-id=test-abc-123; domain=.example.com; path=/; secure; expires=1803590362
-cf_clearance=test-clearance-xyz; domain=.example.com; path=/; secure; expires=1811796410
-test_session=session-only; domain=.example.com; path=/;`;
+        input.value = `sessionKeyLC=1778607250844; domain=.claude.ai; path=/; secure; expires=1785863874
+ARID=3bXBf1BRhJdcDLspGj2c3RceI7xeZK++Cb8bBh5DzBn9odRoYOidUbKCWr5pKC7BOr7eammAED6An2yRoFis6E4Da7cqh1oMpg0HgXjV/iu+FPgfr2mlEkyd/aOfUonohWp2y5Yj1DO/6i4s+UAeWqxzc1I2JQQ=**pjkpdDzpa1uPaO76; domain=.claude.ai; path=/fc; secure; expires=1785863874
+__ssid=2e636b6c-f28d-435e-98af-dc723c524603; domain=.claude.ai; path=/; expires=1813167235
+_fbp=fb.1.1778607242150.47367453040194500; domain=.claude.ai; path=/; secure; expires=1813167233
+routingHint=sk-ant-rh-eyJ0eXAiOiAiSldUIiwgImFsZyI6ICJFUzI1NiIsICJraWQiOiAiN0MxcWFPRnhqdWxaUjRFQnNuNk1UeUZGNWdDV2JHbFpNVDR2RklrRFFpbyJ9.eyJzdWIiOiAiMjFjNjYyMjUtYzY2OC00YTU2LTkzNGUtMTI4MjVjNWFhMTIyIiwgImlhdCI6IDE3Nzg2MDcyNTAsICJpc3MiOiAiY2xhdWRlLWFpLXJvdXRpbmciLCAib25ib2FyZGluZ19jb21wbGV0ZSI6IHRydWUsICJwaG9uZV92ZXJpZmllZCI6IGZhbHNlLCAiYWdlX3ZlcmlmaWVkIjogdHJ1ZX0.zuq5ZJaHjXK3dX-I4Lw68-7z_vFaC3GTKOZ3xUio8ip1yqiZnHbvKWh81dvtCAF2PL5khVuRdKRPbpdH4Nj1sQ; domain=.claude.ai; path=/; secure; expires=1785863874
+sessionKey=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; domain=.claude.ai; path=/; secure; expires=1785863874`;
         statusDiv.textContent = '📥 SAMPLE LOADED · GENERATE TO CONTINUE';
         statusDiv.className = 'status info';
         generate();
@@ -1377,7 +1425,6 @@ test_session=session-only; domain=.example.com; path=/;`;
         statusDiv.className = 'status success';
     });
 
-    // FIXED: Clear Login button
     clearAllCookiesBtn.addEventListener('click', clearLoginCookies);
     clearAllCookiesBtn2.addEventListener('click', clearAllBrowserCookies);
     exportFullBtn.addEventListener('click', exportCookies);
@@ -1401,18 +1448,18 @@ test_session=session-only; domain=.example.com; path=/;`;
         }
     });
 
-    // Auto-generate on paste with delay
+    // Auto-detect when pasting
     let autoTimer;
     input.addEventListener('input', function() {
         clearTimeout(autoTimer);
         autoTimer = setTimeout(() => {
-            if (this.value.trim().length > 30) {
+            if (this.value.trim().length > 20) {
                 const test = universalParse(this.value);
                 if (test.length > 0) {
                     cookieCountStat.textContent = test.length + ' (auto)';
                 }
             }
-        }, 1000);
+        }, 800);
     });
 
     // Init
