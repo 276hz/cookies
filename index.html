@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>cookies to bookmarklet</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -522,7 +522,7 @@
     <div class="header">
         <h1>
             <span class="pixel">⛏️</span> COOKIE FORGE 
-            <span style="font-size:10px;color:#5a4a6a;">v3.2</span>
+            <span style="font-size:10px;color:#5a4a6a;">v3.3</span>
         </h1>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <span class="badge gold">⚡ BOOKMARKLET</span>
@@ -810,7 +810,6 @@
     function buildBookmarklet(cookies, minified = false) {
         if (!cookies || cookies.length === 0) return '// NO COOKIES';
 
-        // Escape properly for JavaScript string
         const cookieArray = cookies.map(c => {
             const name = c.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
             const value = c.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -893,7 +892,6 @@
         tableContainer.innerHTML = html;
         tableCount.textContent = cookies.length;
 
-        // Select all
         const selectAll = document.getElementById('selectAllCookies');
         if (selectAll) {
             selectAll.addEventListener('change', function() {
@@ -924,17 +922,6 @@
             const bookmarklet = buildBookmarklet(cookies, false);
             outputDiv.textContent = bookmarklet;
             updateStats(cookies);
-            
-            // Also update input with formatted version for clarity
-            const formatted = cookies.map(c => {
-                let parts = [c.name + '=' + c.value];
-                if (c.domain) parts.push('domain=' + c.domain);
-                if (c.path) parts.push('path=' + c.path);
-                if (c.secure) parts.push('secure');
-                if (c.expires) parts.push('expires=' + c.expires);
-                return parts.join('; ');
-            }).join('\n');
-            
             statusDiv.textContent = `✅ SUCCESS · ${cookies.length} COOKIES PARSED · BOOKMARKLET READY`;
             statusDiv.className = 'status success';
         } catch (e) {
@@ -957,7 +944,6 @@
             outputDiv.textContent = text;
         }
 
-        // Try multiple copy methods
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(() => {
                 statusDiv.textContent = '📋 COPIED TO CLIPBOARD!';
@@ -971,7 +957,6 @@
     }
     
     function fallbackCopy(text) {
-        // Create temporary textarea
         const textarea = document.createElement('textarea');
         textarea.value = text;
         textarea.style.position = 'fixed';
@@ -1006,7 +991,6 @@
             if (!name) continue;
             
             for (let p of paths) {
-                // Xóa với nhiều tổ hợp domain/path
                 const variants = [
                     { domain: '', path: p },
                     { domain: domain, path: p },
@@ -1024,7 +1008,6 @@
             }
         }
         
-        // Xóa localStorage/sessionStorage
         try {
             const keys = Object.keys(localStorage);
             for (let k of keys) {
@@ -1300,12 +1283,14 @@
     });
 
     sampleBtn.addEventListener('click', function() {
-        input.value = `sessionKeyLC=1778607250844; domain=.claude.ai; path=/; secure; expires=1785863874
-ARID=3bXBf1BRhJdcDLspGj2c3RceI7xeZK++Cb8bBh5DzBn9odRoYOidUbKCWr5pKC7BOr7eammAED6An2yRoFis6E4Da7cqh1oMpg0HgXjV/iu+FPgfr2mlEkyd/aOfUonohWp2y5Yj1DO/6i4s+UAeWqxzc1I2JQQ=**pjkpdDzpa1uPaO76; domain=.claude.ai; path=/fc; secure; expires=1785863874
-__ssid=2e636b6c-f28d-435e-98af-dc723c524603; domain=.claude.ai; path=/; expires=1813167235
-_fbp=fb.1.1778607242150.47367453040194500; domain=.claude.ai; path=/; secure; expires=1813167233
-routingHint=sk-ant-rh-eyJ0eXAiOiAiSldUIiwgImFsZyI6ICJFUzI1NiIsICJraWQiOiAiN0MxcWFPRnhqdWxaUjRFQnNuNk1UeUZGNWdDV2JHbFpNVDR2RklrRFFpbyJ9.eyJzdWIiOiAiMjFjNjYyMjUtYzY2OC00YTU2LTkzNGUtMTI4MjVjNWFhMTIyIiwgImlhdCI6IDE3Nzg2MDcyNTAsICJpc3MiOiAiY2xhdWRlLWFpLXJvdXRpbmciLCAib25ib2FyZGluZ19jb21wbGV0ZSI6IHRydWUsICJwaG9uZV92ZXJpZmllZCI6IGZhbHNlLCAiYWdlX3ZlcmlmaWVkIjogdHJ1ZX0.zuq5ZJaHjXK3dX-I4Lw68-7z_vFaC3GTKOZ3xUio8ip1yqiZnHbvKWh81dvtCAF2PL5khVuRdKRPbpdH4Nj1sQ; domain=.claude.ai; path=/; secure; expires=1785863874
-sessionKey=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; domain=.claude.ai; path=/; secure; expires=1785863874`;
+        input.value = `__ssid=bdf319ad-f8f9-4868-9bef-4a032b3a7e70; domain=.claude.ai; path=/; expires=1809517857
+_fbp=fb.1.1774957836982.54397352998727980; domain=.claude.ai; path=/; secure; expires=1809517838
+ajs_user_id=59c51273-41fc-4eaf-913e-6299174b3aa1; domain=.claude.ai; path=/; expires=1806494144
+intercom-device-id-lupk8zyo=d6d52acc-fae4-4146-85ed-eb015957282b; domain=.claude.ai; path=/; secure; expires=1798288146
+CH-prefers-color-scheme=dark; domain=.claude.ai; path=/; secure; expires=1813557320
+sessionKey=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; domain=.claude.ai; path=/; secure; expires=1784418922
+sessionKeyLC=1778372302506; domain=.claude.ai; path=/; secure; expires=1784418922
+cf_clearance=mqLjx.tb0U36rl.PQxRYNT4xfD6hGRSa7tqEqNCtipg-1782021320-1.2.1.1-vhS1yMid1yLjXbkh9F2tW3od3mF6dGEGW7dXEf2RmLj3UOKXYxVaBlWX26CPZ_JKvdWlaAvMqAisaybyR1JV0pwVsLsxzjJ_0UbD7kOaBHmUICqKnn42ZCRMv9g0gb9hMgXeTaHbZKC8C_HK7GUnu9BlnLoQOw0Malw7T7oixFz7_gro4suGo.qnNa_jqxxJchS3G3IVZMjV4x5Ek7Ew48rUG5OfniIOksLq5zYCrCzxOi1fdYd38kFU0NVgd9gxxhc3fazDsVp5s7vOT1iyIf0qP7OWF_qTGH10AZgV4mJBETcX2vaJ2KznUe.V9ayRGx9l4Z.5.879O12H_dXaSw; domain=.claude.ai; path=/; secure; expires=1813557321`;
         statusDiv.textContent = '📥 SAMPLE LOADED · GENERATE TO CONTINUE';
         statusDiv.className = 'status info';
         generate();
@@ -1448,7 +1433,7 @@ sessionKey=sk-ant-sid02-IcZiJcZoSlaTThKCXFqhIg-uOeDhSOHWBz6M2bQdDKDHXJT8_O-vKMym
         }
     });
 
-    // Auto-detect when pasting
+    // Auto-detect
     let autoTimer;
     input.addEventListener('input', function() {
         clearTimeout(autoTimer);
