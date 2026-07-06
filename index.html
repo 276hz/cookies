@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Cookie → Bookmarklet</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#0a0e14;color:#c9d1d9;font-family:'Courier New',monospace;padding:16px;min-height:100vh;display:flex;justify-content:center;align-items:center}
+        .container{max-width:1100px;width:100%;background:#161b22;border:1px solid #30363d;border-radius:12px;padding:28px;box-shadow:0 8px 32px rgba(0,0,0,0.9)}
+        h1{font-size:17px;color:#58a6ff;border-bottom:1px solid #21262d;padding-bottom:14px;margin-bottom:20px;text-transform:uppercase;letter-spacing:1.5px}
+        .row{display:flex;gap:16px;flex-wrap:wrap}
+        .col{flex:1;min-width:300px}
+        label{display:block;font-size:12px;color:#8b949e;margin-bottom:5px;font-weight:600}
+        textarea{width:100%;height:220px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;font-family:'Courier New',monospace;font-size:12px;padding:10px;resize:vertical;outline:none;transition:border-color 0.2s;tab-size:2}
+        textarea:focus{border-color:#58a6ff}
+        .btn{background:#238636;border:none;border-radius:6px;color:#fff;font-family:'Courier New',monospace;font-size:13px;font-weight:700;padding:10px 20px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;letter-spacing:0.5px}
+        .btn:hover{background:#2ea043;transform:scale(1.01)}
+        .btn-danger{background:#da3633}
+        .btn-danger:hover{background:#f85149}
+        .btn-secondary{background:#21262d;color:#c9d1d9}
+        .btn-secondary:hover{background:#30363d}
+        .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 10px 0}
+        .output-box{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:14px;font-size:11px;word-break:break-all;max-height:280px;overflow-y:auto;font-family:'Courier New',monospace;color:#d2a8ff;user-select:all;white-space:pre-wrap;line-height:1.6}
+        .status{font-size:13px;min-height:22px;margin:8px 0;padding:6px 12px;border-radius:4px;background:#0d1117;border-left:3px solid #238636}
+        .status.error{border-left-color:#da3633;color:#f85149}
+        .status.info{border-left-color:#58a6ff;color:#58a6ff}
+        .badge{display:inline-block;background:#21262d;padding:2px 10px;border-radius:12px;font-size:10px;color:#8b949e;margin-left:8px}
+        .footer{margin-top:18px;font-size:10px;color:#484f58;text-align:right;border-top:1px solid #21262d;padding-top:12px}
+        .format-hint{font-size:11px;color:#8b949e;margin-bottom:6px;background:#0d1117;padding:8px 12px;border-radius:4px;border:1px dashed #30363d}
+        .format-hint code{color:#f0883e;background:#161b22;padding:1px 6px;border-radius:3px}
+        .cookie-count{font-size:12px;color:#8b949e;margin-left:12px}
+        @media(max-width:700px){.col{min-width:100%}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🔓 UNIVERSAL COOKIE → BOOKMARKLET <span class="badge">mọi domain · mọi định dạng</span></h1>
+
+    <div class="row">
+        <div class="col">
+            <label>📋 NHẬP COOKIE (hỗ trợ mọi định dạng)</label>
+            <div class="format-hint">
+                Hỗ trợ: <code>name=value; domain=.example.com; path=/; secure; expires=123456</code> &bull;
+                <code>Set-Cookie: name=value; Domain=.example.com; Path=/; Secure; HttpOnly</code> &bull;
+                <code>document.cookie</code> raw &bull; <code>curl -v</code> output &bull; JSON array
+            </div>
+            <textarea id="cookieInput" placeholder="Dán cookie từ bất kỳ nguồn nào...&#10;Ví dụ:&#10;__ssid=abc123; domain=.claude.ai; path=/; secure; expires=1814820331&#10;sessionKey=xyz789; domain=.claude.ai; path=/; secure"></textarea>
+            <div class="toolbar">
+                <button class="btn" id="generateBtn">⚡ TẠO BOOKMARKLET</button>
+                <button class="btn btn-secondary" id="clearBtn">✕ XÓA</button>
+                <button class="btn btn-secondary" id="sampleBtn">📥 MẪU</button>
+                <button class="btn btn-secondary" id="parseJsonBtn">📦 PARSE JSON</button>
+                <span class="cookie-count" id="cookieCount">🍪 0 cookie</span>
+            </div>
+        </div>
+        <div class="col">
+            <label>📌 BOOKMARKLET (kéo vào thanh bookmark)</label>
+            <div class="output-box" id="bookmarkletOutput">// Chưa tạo</div>
+            <div class="toolbar">
+                <button class="btn" id="copyBtn">📋 SAO CHÉP</button>
+                <button class="btn btn-secondary" id="copyMinBtn">📏 BẢN RÚT GỌN</button>
+                <button class="btn btn-secondary" id="previewBtn">👁️ XEM TRƯỚC</button>
+            </div>
+            <div id="status" class="status info">💡 Nhập cookie và nhấn "TẠO BOOKMARKLET"</div>
+        </div>
+    </div>
+    <div class="footer">mod made by khanhh huyy · parser đa định dạng · hoạt động với mọi trang web</div>
+</div>
+
+<script>
+(function() {
+    // DOM refs
+    const input = document.getElementById('cookieInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const sampleBtn = document.getElementById('sampleBtn');
+    const parseJsonBtn = document.getElementById('parseJsonBtn');
+    const outputDiv = document.getElementById('bookmarkletOutput');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyMinBtn = document.getElementById('copyMinBtn');
+    const previewBtn = document.getElementById('previewBtn');
+    const statusDiv = document.getElementById('status');
+    const cookieCount = document.getElementById('cookieCount');
+
+    // ===== PARSER ĐA ĐỊNH DẠNG =====
+    function universalParse(inputStr) {
+        let raw = inputStr.trim();
+        if (!raw) return [];
+
+        // Thử parse JSON array
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+                const cookies = parsed.map(item => {
+                    let name = item.name || item.key || '';
+                    let value = item.value || item.val || '';
+                    let domain = item.domain || item.Domain || item.host || '';
+                    let path = item.path || item.Path || '/';
+                    let secure = !!item.secure || !!item.Secure || !!item.httponly;
+                    let expires = parseInt(item.expires || item.expiration || item.exp || 0);
+                    if (isNaN(expires)) expires = 0;
+                    return { name, value, domain, path, secure, expires };
+                }).filter(c => c.name && c.value);
+                if (cookies.length > 0) return cookies;
+            }
+        } catch(e) {}
+
+        // Tách dòng
+        let lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
+        let allCookies = [];
+
+        for (let line of lines) {
+            // Loại bỏ "Set-Cookie:" prefix
+            line = line.replace(/^Set-Cookie:\s*/i, '').trim();
+            // Loại bỏ "Cookie:" prefix
+            line = line.replace(/^Cookie:\s*/i, '').trim();
+
+            // Tách các cookie riêng lẻ (dấu ; phân cách)
+            let parts = line.split(';').map(s => s.trim()).filter(s => s.length > 0);
+            let current = { name: '', value: '', domain: '', path: '/', secure: false, expires: 0 };
+
+            for (let part of parts) {
+                if (part.includes('=')) {
+                    const idx = part.indexOf('=');
+                    const key = part.substring(0, idx).trim();
+                    const val = part.substring(idx + 1).trim();
+                    const keyLower = key.toLowerCase();
+
+                    if (keyLower === 'domain') {
+                        current.domain = val;
+                    } else if (keyLower === 'path') {
+                        current.path = val || '/';
+                    } else if (keyLower === 'expires') {
+                        let ts = parseInt(val);
+                        if (!isNaN(ts)) current.expires = ts;
+                        else {
+                            // try date string
+                            const d = new Date(val);
+                            if (!isNaN(d.getTime())) current.expires = Math.floor(d.getTime()/1000);
+                        }
+                    } else if (keyLower === 'max-age') {
+                        let age = parseInt(val);
+                        if (!isNaN(age)) current.expires = Math.floor(Date.now()/1000) + age;
+                    } else if (keyLower === 'samesite') {
+                        // bỏ qua
+                    } else {
+                        // Nếu chưa có name -> đây là cookie chính
+                        if (!current.name) {
+                            current.name = key;
+                            current.value = val;
+                        } else {
+                            // fallback: đẩy cookie hiện tại, tạo mới
+                            if (current.name && current.domain) {
+                                allCookies.push({ ...current });
+                            }
+                            current = { name: key, value: val, domain: '', path: '/', secure: false, expires: 0 };
+                        }
+                    }
+                } else {
+                    const lower = part.toLowerCase();
+                    if (lower === 'secure') current.secure = true;
+                    else if (lower === 'httponly') current.secure = true;
+                }
+            }
+
+            // Nếu domain trống, thử lấy từ dòng khác hoặc mặc định
+            if (!current.domain && current.name) {
+                // Thử tìm domain trong line gốc
+                const domainMatch = line.match(/domain\s*=\s*([^;\s]+)/i);
+                if (domainMatch) current.domain = domainMatch[1];
+            }
+
+            if (current.name && current.value) {
+                // Nếu domain vẫn rỗng, dùng domain mặc định của trang hiện tại (sẽ set khi chạy bookmarklet)
+                if (!current.domain) current.domain = '';
+                allCookies.push({ ...current });
+            }
+        }
+
+        // Nếu vẫn rỗng, thử parse kiểu key=value không có domain
+        if (allCookies.length === 0) {
+            const pairs = raw.split(/[;,\n]/).map(s => s.trim()).filter(s => s.includes('='));
+            for (let pair of pairs) {
+                const idx = pair.indexOf('=');
+                const name = pair.substring(0, idx).trim();
+                const value = pair.substring(idx + 1).trim();
+                if (name && value) {
+                    allCookies.push({ name, value, domain: '', path: '/', secure: false, expires: 0 });
+                }
+            }
+        }
+
+        return allCookies;
+    }
+
+    // ===== TẠO BOOKMARKLET =====
+    function buildBookmarklet(cookies, minified = false) {
+        if (!cookies || cookies.length === 0) return '// Không có cookie hợp lệ';
+
+        const cookieArray = cookies.map(c => {
+            const name = c.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+            const value = c.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+            const domain = c.domain ? c.domain.replace(/\\/g, '\\\\').replace(/"/g, '\\"') : '';
+            const path = c.path ? c.path.replace(/\\/g, '\\\\').replace(/"/g, '\\"') : '/';
+            const secure = c.secure ? '!0' : '!1';
+            const exp = c.expires || 0;
+            return `["${name}","${value}","${domain}","${path}",${secure},${exp}]`;
+        }).join(',');
+
+        let jsCode;
+        if (minified) {
+            jsCode = `(function(){var c=[${cookieArray}],d=document;c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];a[4]&&(b+="; secure");if(a[5]){var e=new Date(a[5]*1e3);b+="; expires="+e.toUTCString()}d.cookie=b});console.log("Set "+c.length+" cookies");d.location.reload()})()`;
+        } else {
+            jsCode = `(function(){var c=[${cookieArray}];c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];a[4]&&(b+="; secure");if(a[5]){var d=new Date(a[5]*1e3);b+="; expires="+d.toUTCString()}document.cookie=b});console.log("[*] Set "+c.length+" cookies. Reloading...");location.reload()})();`;
+        }
+
+        return 'javascript:' + jsCode;
+    }
+
+    // ===== GENERATE =====
+    function generate() {
+        const raw = input.value.trim();
+        if (!raw) {
+            statusDiv.textContent = '⚠️ Vui lòng nhập cookie string.';
+            statusDiv.className = 'status error';
+            return;
+        }
+
+        try {
+            const cookies = universalParse(raw);
+            if (cookies.length === 0) {
+                statusDiv.textContent = '❌ Không parse được cookie nào. Kiểm tra định dạng.';
+                statusDiv.className = 'status error';
+                outputDiv.textContent = '// Không có cookie';
+                cookieCount.textContent = '🍪 0 cookie';
+                return;
+            }
+
+            const bookmarklet = buildBookmarklet(cookies, false);
+            outputDiv.textContent = bookmarklet;
+            cookieCount.textContent = `🍪 ${cookies.length} cookie`;
+            statusDiv.textContent = `✅ Thành công! ${cookies.length} cookie đã được parse.`;
+            statusDiv.className = 'status';
+        } catch (e) {
+            statusDiv.textContent = '❌ Lỗi: ' + e.message;
+            statusDiv.className = 'status error';
+        }
+    }
+
+    // ===== COPY =====
+    function copyBookmarklet(minified = false) {
+        let text = outputDiv.textContent;
+        if (!text || text === '// Chưa tạo' || text === '// Không có cookie') {
+            statusDiv.textContent = '⚠️ Chưa có bookmarklet để sao chép.';
+            statusDiv.className = 'status error';
+            return;
+        }
+
+        // Nếu yêu cầu minified, tạo lại
+        if (minified) {
+            const raw = input.value.trim();
+            if (!raw) {
+                statusDiv.textContent = '⚠️ Cần nhập cookie trước.';
+                statusDiv.className = 'status error';
+                return;
+            }
+            const cookies = universalParse(raw);
+            if (cookies.length === 0) {
+                statusDiv.textContent = '❌ Không có cookie.';
+                statusDiv.className = 'status error';
+                return;
+            }
+            text = buildBookmarklet(cookies, true);
+            outputDiv.textContent = text;
+        }
+
+        navigator.clipboard.writeText(text).then(() => {
+            statusDiv.textContent = '📋 Đã sao chép vào clipboard!';
+            statusDiv.className = 'status';
+        }).catch(() => {
+            // fallback
+            const range = document.createRange();
+            range.selectNode(outputDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            statusDiv.textContent = '📋 Đã sao chép (dự phòng).';
+            statusDiv.className = 'status';
+        });
+    }
+
+    // ===== PREVIEW =====
+    function previewCookies() {
+        const raw = input.value.trim();
+        if (!raw) {
+            statusDiv.textContent = '⚠️ Nhập cookie trước.';
+            statusDiv.className = 'status error';
+            return;
+        }
+        const cookies = universalParse(raw);
+        if (cookies.length === 0) {
+            statusDiv.textContent = '❌ Không parse được.';
+            statusDiv.className = 'status error';
+            return;
+        }
+        const preview = cookies.map((c, i) => 
+            `[${i}] ${c.name}=${c.value.substring(0,30)}${c.value.length>30?'...':''} | domain:${c.domain||'(auto)'} | path:${c.path} | secure:${c.secure} | exp:${c.expires||0}`
+        ).join('\n');
+        alert('🍪 Cookie parsed:\n\n' + preview + '\n\nTổng: ' + cookies.length + ' cookie');
+        statusDiv.textContent = `👁️ Đã hiển thị ${cookies.length} cookie.`;
+        statusDiv.className = 'status';
+    }
+
+    // ===== SAMPLE =====
+    function loadSample() {
+        input.value = `__ssid=c849178c-a191-48eb-ad8d-cdc1f35d486a; domain=.claude.ai; path=/; secure; expires=1814820331
+_fbp=fb.1.1780260336818.35343040755638710; domain=.claude.ai; path=/; secure; expires=1814820330
+sessionKey=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; domain=.claude.ai; path=/; secure; expires=1785863885
+cf_clearance=4guXCFLBW2AaSaPrE7LTdrb3c5UT.E8pceVieTta2vs-1780260417-1.2.1.1-rxZLsJFj9X_7aIEtltaqVBWnyA96q63I42SrixSCwGnKrUE9azEzQzZve1P_N5.XD3lRzAg_n_XAJw23lu_psMDGI4._5yuW9ds4Iuc2ymvYdvAOT2qVaAa4YjOWvDdhfCiR4.DwplwEWSgVJfj7l7I31ACA3EQ.VnzzArw2IkiN9Qyv7M_IpbrtRTIFf3ttvKYKPhdXvBj.dcPb8qpTD6DESFDcb7vuz7mMDNjJRcnYkhEIQ1nQ.XrRwfM4P0zwLronwRpGR1uJgqe3OfUTXprLliNbObCrz9D1EZfL9UX2i58z9L7jnfh3UB9RV0D3kgVKvKaSS.3wx6qIWRNsiw; domain=.claude.ai; path=/; secure; expires=1811796410
+intercom-device-id-lupk8zyo=871ed5ac-cfc7-44aa-9b64-ad6f1f119c4c; domain=.claude.ai; path=/; secure; expires=1803590362`;
+        statusDiv.textContent = '📥 Đã load mẫu (6 cookie). Nhấn "TẠO BOOKMARKLET".';
+        statusDiv.className = 'status info';
+        cookieCount.textContent = '🍪 6 cookie (chưa parse)';
+        generate();
+    }
+
+    // ===== PARSE JSON =====
+    function parseJsonInput() {
+        const raw = input.value.trim();
+        if (!raw) {
+            statusDiv.textContent = '⚠️ Nhập JSON array cookie.';
+            statusDiv.className = 'status error';
+            return;
+        }
+        try {
+            const data = JSON.parse(raw);
+            if (Array.isArray(data) && data.length > 0) {
+                // Format lại thành cookie string để parse tiếp
+                let formatted = data.map(item => {
+                    let parts = [];
+                    parts.push(`${item.name||item.key||'unknown'}=${item.value||item.val||''}`);
+                    if (item.domain || item.Domain) parts.push(`domain=${item.domain||item.Domain}`);
+                    if (item.path || item.Path) parts.push(`path=${item.path||item.Path}`);
+                    if (item.secure || item.Secure) parts.push('secure');
+                    if (item.expires || item.exp) parts.push(`expires=${item.expires||item.exp}`);
+                    return parts.join('; ');
+                }).join('\n');
+                input.value = formatted;
+                statusDiv.textContent = '✅ Đã chuyển JSON thành cookie string. Nhấn "TẠO BOOKMARKLET".';
+                statusDiv.className = 'status';
+                generate();
+            } else {
+                statusDiv.textContent = '❌ JSON phải là array các object cookie.';
+                statusDiv.className = 'status error';
+            }
+        } catch(e) {
+            statusDiv.textContent = '❌ JSON không hợp lệ: ' + e.message;
+            statusDiv.className = 'status error';
+        }
+    }
+
+    // ===== EVENTS =====
+    generateBtn.addEventListener('click', generate);
+    clearBtn.addEventListener('click', function() {
+        input.value = '';
+        outputDiv.textContent = '// Chưa tạo';
+        cookieCount.textContent = '🍪 0 cookie';
+        statusDiv.textContent = '🧹 Đã xóa. Nhập cookie mới.';
+        statusDiv.className = 'status info';
+    });
+    sampleBtn.addEventListener('click', loadSample);
+    parseJsonBtn.addEventListener('click', parseJsonInput);
+    copyBtn.addEventListener('click', function() { copyBookmarklet(false); });
+    copyMinBtn.addEventListener('click', function() { copyBookmarklet(true); });
+    previewBtn.addEventListener('click', previewCookies);
+
+    // Auto-generate khi dán
+    let autoTimer;
+    input.addEventListener('input', function() {
+        clearTimeout(autoTimer);
+        autoTimer = setTimeout(() => {
+            if (this.value.trim().length > 20) {
+                // chỉ tự động nếu có vẻ là cookie
+                const cookies = universalParse(this.value);
+                if (cookies.length > 0) {
+                    cookieCount.textContent = `🍪 ${cookies.length} cookie (tự động)`;
+                }
+            }
+        }, 800);
+    });
+
+    // Khởi tạo
+    statusDiv.textContent = '💡 Nhập cookie từ bất kỳ trang web, nhấn "TẠO BOOKMARKLET"';
+    statusDiv.className = 'status info';
+})();
+</script>
+</body>
+</html>
