@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ COOKIE FORGE · Bookmarklet Generator</title>
+    <title>⚡ CLAUDE COOKIE FORGE</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{background:#0a0a0a;color:#b8b8b8;font-family:'Courier New',monospace;padding:16px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
-        .container{max-width:1100px;width:100%;background:#0d0d0d;border:3px solid #3a2a5a;padding:24px;box-shadow:0 0 60px rgba(60,30,120,0.15)}
+        .container{max-width:1000px;width:100%;background:#0d0d0d;border:3px solid #6a4a9a;padding:24px;box-shadow:0 0 60px rgba(100,60,180,0.15)}
         h1{font-size:20px;color:#aa77dd;border-bottom:2px solid #2a1a3a;padding-bottom:14px;margin-bottom:20px;letter-spacing:1px}
         h1 span{color:#ff6a88}
-        .badge{display:inline-block;background:#1a1a2a;border:2px solid #3a2a5a;padding:3px 12px;font-size:11px;color:#8a7aaa;margin-left:10px}
+        .badge{display:inline-block;background:#1a1a2a;border:2px solid #5a3a7a;padding:3px 12px;font-size:11px;color:#8a7aaa;margin-left:10px}
         .row{display:flex;gap:16px;flex-wrap:wrap}
         .col{flex:1;min-width:300px}
         label{display:block;font-size:11px;color:#6a5a7a;margin-bottom:6px;font-weight:bold;letter-spacing:1px}
@@ -30,7 +30,7 @@
         .btn-gold{border-color:#5a4a2a;color:#ccaa44}
         .btn-gold:hover{background:#1a1a0a;border-color:#8a6a3a;color:#ffcc66}
         .btn-sm{font-size:9px;padding:4px 10px}
-        .output-box{background:#050508;border:2px solid #1a1a2a;padding:14px;font-size:11px;word-break:break-all;max-height:260px;overflow-y:auto;font-family:'Courier New',monospace;color:#aa88dd;user-select:all;white-space:pre-wrap;line-height:1.8;min-height:120px}
+        .output-box{background:#050508;border:2px solid #1a1a2a;padding:14px;font-size:10px;word-break:break-all;max-height:260px;overflow-y:auto;font-family:'Courier New',monospace;color:#aa88dd;user-select:all;white-space:pre-wrap;line-height:1.8;min-height:120px}
         .status{padding:8px 12px;margin-top:10px;background:#0a0a12;border-left:4px solid #3a5a3a;color:#88aa88;font-size:11px;min-height:20px;font-family:'Courier New',monospace}
         .status-error{border-left-color:#5a2a2a;color:#cc6666}
         .status-success{border-left-color:#3a7a3a;color:#66dd88}
@@ -47,45 +47,37 @@
         th{background:#0a0a12;border:1px solid #1a1a2a;padding:4px 6px;text-align:left;color:#6a5a7a;font-size:9px;text-transform:uppercase}
         td{border:1px solid #1a1a2a;padding:4px 6px;color:#aaaabb;font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         tr:hover td{background:#0a0a18}
-        .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;justify-content:center;align-items:center;padding:20px}
-        .modal.active{display:flex}
-        .modal-box{background:#0d0d0d;border:3px solid #3a2a5a;padding:30px;max-width:600px;width:100%;max-height:80vh;overflow-y:auto}
-        .modal-box h2{font-size:16px;color:#aa77dd;margin-bottom:16px;border-bottom:2px solid #1a1a2a;padding-bottom:12px}
-        .modal-box .close{float:right;background:none;border:2px solid #3a2a3a;color:#886688;font-size:18px;padding:0 10px;cursor:pointer;font-family:'Courier New',monospace}
-        .modal-box .close:hover{border-color:#6a4a6a;color:#cc88cc}
         .hint{font-size:9px;color:#4a4a5a;margin-top:4px}
+        .claude-brand{color:#7a5aaa;font-size:12px}
         @media(max-width:700px){.col{min-width:100%}}
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>⛏️ <span>COOKIE FORGE</span> <span class="badge">⚡ BOOKMARKLET</span></h1>
+    <h1>⛏️ <span>CLAUDE</span> COOKIE FORGE <span class="badge">⚡ BOOKMARKLET</span></h1>
 
     <div class="stats">
         <span>🍪 Cookies: <span class="num" id="cookieCount">0</span></span>
         <span>📦 Size: <span class="num" id="cookieSize">0 B</span></span>
-        <span>🏷️ Domains: <span class="num" id="domainCount">0</span></span>
-        <span>⏱️ Session: <span class="num" id="sessionCount">0</span></span>
+        <span>🔐 Secure: <span class="num" id="secureCount">0</span></span>
         <span style="margin-left:auto;">
             <button class="btn btn-danger btn-sm" id="clearLoginBtn">🗑️ CLEAR LOGIN</button>
             <button class="btn btn-sm" id="exportBtn">📤 EXPORT</button>
-            <button class="btn btn-sm" id="importBtn">📥 IMPORT</button>
         </span>
     </div>
 
     <div class="row">
         <div class="col">
-            <label>📋 INPUT COOKIE (mọi định dạng)</label>
-            <textarea id="inputArea" placeholder="Paste cookies here...&#10;Format: name=value; domain=.site.com; path=/; secure; expires=123456&#10;Or JSON: [{'name':'x','value':'y','domain':'.site.com'}]&#10;Or Set-Cookie: ..."></textarea>
+            <label>📋 PASTE CLAUDE COOKIES</label>
+            <textarea id="inputArea" placeholder="Paste cookies from browser...&#10;Format: name=value; domain=.claude.ai; path=/; secure; expires=123456"></textarea>
             <div class="btn-group">
                 <button class="btn btn-primary" id="generateBtn">⚡ GENERATE</button>
                 <button class="btn" id="sampleBtn">📥 SAMPLE</button>
-                <button class="btn" id="jsonBtn">📦 PARSE JSON</button>
                 <button class="btn btn-danger" id="clearBtn">✕ CLEAR</button>
                 <button class="btn btn-gold" id="detectBtn">🔍 DETECT</button>
             </div>
             <div class="progress"><div class="fill" id="progressFill"></div></div>
-            <div class="hint">⌨️ Ctrl+Enter = Generate</div>
+            <div class="hint">⌨️ Ctrl+Enter = Generate · Chỉ hỗ trợ Claude.ai</div>
         </div>
         <div class="col">
             <label>📌 BOOKMARKLET</label>
@@ -96,7 +88,7 @@
                 <button class="btn btn-gold" id="previewBtn">👁️ PREVIEW</button>
                 <button class="btn" id="downloadBtn">💾 DOWNLOAD</button>
             </div>
-            <div class="status status-info" id="statusMsg">💡 Paste cookies &amp; press GENERATE</div>
+            <div class="status status-info" id="statusMsg">💡 Paste Claude cookies &amp; press GENERATE</div>
         </div>
     </div>
 
@@ -114,76 +106,52 @@
     <div style="margin-top:12px;border:2px solid #1a1a2a;padding:12px;background:#0a0a12;">
         <span style="font-size:11px;color:#6a5a7a;">🛠️ TOOLS</span>
         <div class="btn-group" style="margin-top:6px;">
-            <button class="btn btn-danger" id="clearAllBtn">🗑️ CLEAR ALL</button>
             <button class="btn btn-gold" id="dedupeBtn">🧹 DEDUPE</button>
             <button class="btn" id="filterSecureBtn">🔒 SECURE</button>
             <button class="btn" id="filterSessionBtn">⏳ SESSION</button>
-            <button class="btn btn-primary" id="mergeBtn">🔗 MERGE</button>
             <button class="btn" id="curlBtn">🔄 CURL</button>
             <button class="btn" id="jsonExportBtn">📦 TO JSON</button>
-            <button class="btn" id="b64encBtn">🔐 B64 ENCODE</button>
-            <button class="btn" id="b64decBtn">🔓 B64 DECODE</button>
         </div>
     </div>
 
-    <div class="footer">⛏️ mod made by khanhh huyy · v4.0 · <span id="timestamp">--:--:--</span></div>
-</div>
-
-<!-- Modal -->
-<div class="modal" id="modal">
-    <div class="modal-box">
-        <button class="close" id="modalClose">✕</button>
-        <h2 id="modalTitle">📋 Details</h2>
-        <div id="modalBody" style="font-size:11px;line-height:2;color:#aa99bb;max-height:60vh;overflow-y:auto;"></div>
-    </div>
+    <div class="footer">⛏️ mod made by khanhh huyy · Claude.ai专用 · <span id="timestamp">--:--:--</span></div>
 </div>
 
 <script>
 (function(){
-    // ========== DOM REFS ==========
+    // DOM
     const input = document.getElementById('inputArea');
     const output = document.getElementById('outputArea');
     const status = document.getElementById('statusMsg');
     const generateBtn = document.getElementById('generateBtn');
     const clearBtn = document.getElementById('clearBtn');
     const sampleBtn = document.getElementById('sampleBtn');
-    const jsonBtn = document.getElementById('jsonBtn');
     const detectBtn = document.getElementById('detectBtn');
     const copyBtn = document.getElementById('copyBtn');
     const copyMinBtn = document.getElementById('copyMinBtn');
     const previewBtn = document.getElementById('previewBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const clearLoginBtn = document.getElementById('clearLoginBtn');
-    const clearAllBtn = document.getElementById('clearAllBtn');
     const exportBtn = document.getElementById('exportBtn');
-    const importBtn = document.getElementById('importBtn');
     const dedupeBtn = document.getElementById('dedupeBtn');
     const filterSecureBtn = document.getElementById('filterSecureBtn');
     const filterSessionBtn = document.getElementById('filterSessionBtn');
-    const mergeBtn = document.getElementById('mergeBtn');
     const curlBtn = document.getElementById('curlBtn');
     const jsonExportBtn = document.getElementById('jsonExportBtn');
-    const b64encBtn = document.getElementById('b64encBtn');
-    const b64decBtn = document.getElementById('b64decBtn');
     const toggleTableBtn = document.getElementById('toggleTableBtn');
     const removeSelectedBtn = document.getElementById('removeSelectedBtn');
     const tableContainer = document.getElementById('tableContainer');
     const tableCount = document.getElementById('tableCount');
     const cookieCount = document.getElementById('cookieCount');
     const cookieSize = document.getElementById('cookieSize');
-    const domainCount = document.getElementById('domainCount');
-    const sessionCount = document.getElementById('sessionCount');
+    const secureCount = document.getElementById('secureCount');
     const progressFill = document.getElementById('progressFill');
     const timestamp = document.getElementById('timestamp');
-    const modal = document.getElementById('modal');
-    const modalClose = document.getElementById('modalClose');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
 
     let cookies = [];
     let tableVisible = true;
 
-    // ========== TIMESTAMP ==========
+    // Time
     function updateTime() {
         const d = new Date();
         timestamp.textContent = d.toTimeString().slice(0,8);
@@ -191,19 +159,19 @@
     updateTime();
     setInterval(updateTime, 1000);
 
-    // ========== PARSER ==========
-    function parseCookies(raw) {
+    // ===== PARSE CLAUDE COOKIES =====
+    function parseClaudeCookies(raw) {
         raw = raw.trim();
         if (!raw) return [];
 
-        // ---- JSON ----
+        // Try JSON
         try {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed)) {
                 const result = parsed.map(item => {
                     const name = item.name || item.key || '';
                     const value = item.value || item.val || '';
-                    const domain = item.domain || item.Domain || item.host || '';
+                    const domain = item.domain || item.Domain || '.claude.ai';
                     const path = item.path || item.Path || '/';
                     const secure = !!(item.secure || item.Secure || item.httponly);
                     let expires = parseInt(item.expires || item.exp || item.expiration || 0);
@@ -214,7 +182,7 @@
             }
         } catch(e) {}
 
-        // ---- Raw cookie string ----
+        // Parse raw cookie string
         const lines = raw.split(/\r?\n/).filter(l => l.trim());
         let all = [];
 
@@ -223,7 +191,7 @@
             line = line.replace(/^Cookie:\s*/i, '').trim();
 
             const parts = line.split(';').map(s => s.trim()).filter(s => s);
-            let curr = { name: '', value: '', domain: '', path: '/', secure: false, expires: 0 };
+            let curr = { name: '', value: '', domain: '.claude.ai', path: '/', secure: false, expires: 0 };
 
             for (let part of parts) {
                 if (part.includes('=')) {
@@ -246,7 +214,7 @@
                     } else if (k === 'max-age') {
                         const age = parseInt(val);
                         if (!isNaN(age)) curr.expires = Math.floor(Date.now()/1000) + age;
-                    } else if (k === 'samesite' || k === 'secure' || k === 'httponly') {
+                    } else if (k === 'secure' || k === 'httponly' || k === 'samesite') {
                         // skip
                     } else {
                         if (!curr.name) {
@@ -254,7 +222,7 @@
                             curr.value = val;
                         } else {
                             if (curr.name) all.push({...curr});
-                            curr = { name: key, value: val, domain: '', path: '/', secure: false, expires: 0 };
+                            curr = { name: key, value: val, domain: '.claude.ai', path: '/', secure: false, expires: 0 };
                         }
                     }
                 } else {
@@ -265,16 +233,12 @@
             }
 
             if (curr.name && curr.value) {
-                if (!curr.domain) {
-                    const match = line.match(/domain\s*=\s*([^;\s]+)/i);
-                    if (match) curr.domain = match[1];
-                }
-                if (!curr.domain) curr.domain = '';
+                if (!curr.domain || curr.domain === '') curr.domain = '.claude.ai';
                 all.push(curr);
             }
         }
 
-        // ---- Fallback: key=value pairs ----
+        // Fallback: key=value pairs
         if (all.length === 0) {
             const pairs = raw.split(/[;,\n]/).map(s => s.trim()).filter(s => s.includes('='));
             for (let p of pairs) {
@@ -282,22 +246,23 @@
                 const name = p.substring(0, idx).trim();
                 const value = p.substring(idx + 1).trim();
                 if (name && value) {
-                    all.push({ name, value, domain: '', path: '/', secure: false, expires: 0 });
+                    all.push({ name, value, domain: '.claude.ai', path: '/', secure: false, expires: 0 });
                 }
             }
         }
 
-        return all;
+        // Filter only claude.ai cookies
+        return all.filter(c => c.domain && c.domain.includes('claude.ai'));
     }
 
-    // ========== BUILD BOOKMARKLET ==========
+    // ===== BUILD BOOKMARKLET =====
     function buildBookmarklet(cookies, minified) {
         if (!cookies || cookies.length === 0) return '// NO COOKIES';
 
         const arr = cookies.map(c => {
             const name = c.name.replace(/\\/g,'\\\\').replace(/"/g,'\\"');
             const value = c.value.replace(/\\/g,'\\\\').replace(/"/g,'\\"');
-            const domain = (c.domain||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+            const domain = (c.domain||'.claude.ai').replace(/\\/g,'\\\\').replace(/"/g,'\\"');
             const path = (c.path||'/').replace(/\\/g,'\\\\').replace(/"/g,'\\"');
             const secure = c.secure ? '!0' : '!1';
             const exp = c.expires || 0;
@@ -306,14 +271,14 @@
 
         let code;
         if (minified) {
-            code = `(function(){var c=[${arr}],d=document;c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];a[4]&&(b+="; secure");if(a[5]){var e=new Date(a[5]*1e3);b+="; expires="+e.toUTCString()}d.cookie=b});console.log("Set "+c.length+" cookies");d.location.reload()})()`;
+            code = `(function(){var c=[${arr}],d=document;c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];a[4]&&(b+="; secure");if(a[5]){var e=new Date(a[5]*1e3);b+="; expires="+e.toUTCString()}d.cookie=b});console.log("Set "+c.length+" Claude cookies");d.location.reload()})()`;
         } else {
-            code = `(function(){var c=[${arr}];c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];a[4]&&(b+="; secure");if(a[5]){var d=new Date(a[5]*1e3);b+="; expires="+d.toUTCString()}document.cookie=b});console.log("[*] Set "+c.length+" cookies. Reloading...");location.reload()})();`;
+            code = `(function(){var c=[${arr}];c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];a[4]&&(b+="; secure");if(a[5]){var d=new Date(a[5]*1e3);b+="; expires="+d.toUTCString()}document.cookie=b});console.log("[*] Set "+c.length+" Claude cookies. Reloading...");location.reload()})();`;
         }
         return 'javascript:' + code;
     }
 
-    // ========== UPDATE UI ==========
+    // ===== UPDATE UI =====
     function updateUI(cookieList) {
         cookies = cookieList || [];
         const count = cookies.length;
@@ -322,11 +287,8 @@
         const size = cookies.reduce((s,c) => s + c.name.length + c.value.length + 2, 0);
         cookieSize.textContent = size > 1024 ? (size/1024).toFixed(1)+' KB' : size+' B';
 
-        const domains = new Set(cookies.map(c => c.domain || '(none)'));
-        domainCount.textContent = domains.size;
-
-        const sessions = cookies.filter(c => !c.expires || c.expires === 0).length;
-        sessionCount.textContent = sessions;
+        const secure = cookies.filter(c => c.secure).length;
+        secureCount.textContent = secure;
 
         const pct = Math.min(count * 2, 100);
         progressFill.style.width = pct + '%';
@@ -348,7 +310,7 @@
         }
 
         let html = `<table><thead><tr>
-            <th>#</th><th>Name</th><th>Value</th><th>Domain</th><th>Path</th><th>Secure</th><th>Expires</th>
+            <th>#</th><th>Name</th><th>Value</th><th>Path</th><th>Secure</th><th>Expires</th>
             <th><input type="checkbox" id="selectAll" style="accent-color:#6a4a8a;"></th>
         </tr></thead><tbody>`;
 
@@ -359,7 +321,6 @@
                 <td>${i+1}</td>
                 <td style="color:#aa88dd;">${c.name}</td>
                 <td style="color:#88ccaa;">${val}</td>
-                <td style="color:#ccaa66;">${c.domain || '(auto)'}</td>
                 <td style="color:#6688cc;">${c.path}</td>
                 <td style="color:${c.secure?'#66ff66':'#666666'};">${c.secure?'✓':'✗'}</td>
                 <td style="font-size:9px;">${exp}</td>
@@ -379,7 +340,7 @@
         }
     }
 
-    // ========== GENERATE ==========
+    // ===== GENERATE =====
     function generate() {
         const raw = input.value.trim();
         if (!raw) {
@@ -389,11 +350,11 @@
         }
 
         try {
-            const parsed = parseCookies(raw);
+            const parsed = parseClaudeCookies(raw);
             if (parsed.length === 0) {
                 status.className = 'status status-error';
-                status.textContent = '❌ PARSE FAILED · CHECK FORMAT';
-                output.textContent = '// PARSE ERROR';
+                status.textContent = '❌ NO CLAUDE COOKIES FOUND · CHECK FORMAT';
+                output.textContent = '// NO CLAUDE COOKIES';
                 updateUI([]);
                 return;
             }
@@ -402,17 +363,17 @@
             output.textContent = bm;
             updateUI(parsed);
             status.className = 'status status-success';
-            status.textContent = '✅ ' + parsed.length + ' COOKIES PARSED · BOOKMARKLET READY';
+            status.textContent = '✅ ' + parsed.length + ' CLAUDE COOKIES PARSED · BOOKMARKLET READY';
         } catch(e) {
             status.className = 'status status-error';
             status.textContent = '❌ ERROR: ' + e.message;
         }
     }
 
-    // ========== COPY ==========
+    // ===== COPY =====
     function copyBookmarklet(minified) {
         let text = output.textContent;
-        if (!text || text === '// WAITING FOR INPUT...' || text === '// PARSE ERROR' || text === '// NO COOKIES') {
+        if (!text || text === '// WAITING FOR INPUT...' || text === '// NO CLAUDE COOKIES' || text === '// NO COOKIES') {
             status.className = 'status status-error';
             status.textContent = '⚠️ GENERATE FIRST';
             return;
@@ -450,12 +411,12 @@
         document.body.removeChild(ta);
     }
 
-    // ========== CLEAR LOGIN ==========
+    // ===== CLEAR LOGIN =====
     function clearLogin() {
-        if (!confirm('⚠️ DELETE ALL SESSION/LOGIN COOKIES FOR CURRENT DOMAIN?')) return;
+        if (!confirm('⚠️ DELETE ALL SESSION/LOGIN COOKIES FOR CLAUDE.AI?')) return;
 
-        const domain = location.hostname;
-        const paths = ['/', '/api', '/auth', '/login', '/account', '/dashboard', '/app', '/admin', '/profile', '/settings'];
+        const domain = '.claude.ai';
+        const paths = ['/', '/fc', '/api', '/auth', '/login', '/account', '/dashboard', '/app'];
         const cookies = document.cookie.split(';');
 
         for (let c of cookies) {
@@ -463,7 +424,7 @@
             const name = eq > -1 ? c.substring(0, eq).trim() : c.trim();
             if (!name) continue;
             for (let p of paths) {
-                for (let d of ['', domain, '.'+domain]) {
+                for (let d of ['', 'claude.ai', '.claude.ai']) {
                     let cs = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p;
                     if (d) cs += '; domain=' + d;
                     document.cookie = cs;
@@ -477,7 +438,7 @@
             for (let k of keys) {
                 const lk = k.toLowerCase();
                 if (lk.includes('token') || lk.includes('session') || lk.includes('auth') || 
-                    lk.includes('login') || lk.includes('user') || lk.includes('credential') || lk.includes('access')) {
+                    lk.includes('login') || lk.includes('user') || lk.includes('credential')) {
                     localStorage.removeItem(k);
                 }
             }
@@ -495,31 +456,7 @@
         setTimeout(() => location.reload(), 1200);
     }
 
-    // ========== CLEAR ALL ==========
-    function clearAll() {
-        if (!confirm('⚠️ DELETE ALL COOKIES FOR THIS DOMAIN?')) return;
-        const domain = location.hostname;
-        const paths = ['/', '/api', '/auth', '/login', '/account', '/dashboard', '/app', '/admin'];
-        const cookies = document.cookie.split(';');
-
-        for (let c of cookies) {
-            const eq = c.indexOf('=');
-            const name = eq > -1 ? c.substring(0, eq).trim() : c.trim();
-            if (!name) continue;
-            for (let p of paths) {
-                for (let d of ['', domain, '.'+domain]) {
-                    let cs = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p;
-                    if (d) cs += '; domain=' + d;
-                    document.cookie = cs;
-                }
-            }
-        }
-        status.className = 'status status-warning';
-        status.textContent = '🗑️ ALL CLEARED · RELOADING...';
-        setTimeout(() => location.reload(), 1200);
-    }
-
-    // ========== EXPORT / IMPORT ==========
+    // ===== EXPORT =====
     function exportCookies() {
         if (cookies.length === 0) {
             status.className = 'status status-error';
@@ -531,7 +468,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'cookies_' + Date.now() + '.json';
+        a.download = 'claude_cookies_' + Date.now() + '.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -540,48 +477,7 @@
         status.textContent = '📤 EXPORTED ' + cookies.length + ' COOKIES';
     }
 
-    function importCookies() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.onchange = function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                try {
-                    const data = JSON.parse(ev.target.result);
-                    if (Array.isArray(data)) {
-                        cookies = data;
-                        updateUI(cookies);
-                        const bm = buildBookmarklet(cookies, false);
-                        output.textContent = bm;
-                        // Update input
-                        input.value = cookies.map(c => {
-                            let parts = [c.name + '=' + c.value];
-                            if (c.domain) parts.push('domain=' + c.domain);
-                            if (c.path) parts.push('path=' + c.path);
-                            if (c.secure) parts.push('secure');
-                            if (c.expires) parts.push('expires=' + c.expires);
-                            return parts.join('; ');
-                        }).join('\n');
-                        status.className = 'status status-success';
-                        status.textContent = '📥 IMPORTED ' + cookies.length + ' COOKIES';
-                    } else {
-                        status.className = 'status status-error';
-                        status.textContent = '❌ INVALID JSON ARRAY';
-                    }
-                } catch(err) {
-                    status.className = 'status status-error';
-                    status.textContent = '❌ IMPORT ERROR: ' + err.message;
-                }
-            };
-            reader.readAsText(file);
-        };
-        input.click();
-    }
-
-    // ========== DEDUPE ==========
+    // ===== DEDUPE =====
     function dedupe() {
         if (cookies.length === 0) {
             status.className = 'status status-error';
@@ -609,7 +505,7 @@
         }
     }
 
-    // ========== FILTERS ==========
+    // ===== FILTERS =====
     function filterSecure() {
         if (cookies.length === 0) return;
         cookies = cookies.filter(c => c.secure);
@@ -630,29 +526,7 @@
         status.textContent = '⏳ ' + cookies.length + ' SESSION COOKIES';
     }
 
-    // ========== MERGE ==========
-    function merge() {
-        const raw = input.value.trim();
-        if (!raw) {
-            status.className = 'status status-error';
-            status.textContent = '⚠️ PASTE COOKIES TO MERGE';
-            return;
-        }
-        const parsed = parseCookies(raw);
-        if (parsed.length === 0) {
-            status.className = 'status status-error';
-            status.textContent = '❌ CANNOT PARSE';
-            return;
-        }
-        cookies = [...cookies, ...parsed];
-        updateUI(cookies);
-        const bm = buildBookmarklet(cookies, false);
-        output.textContent = bm;
-        status.className = 'status status-success';
-        status.textContent = '🔗 MERGED +' + parsed.length + ' (TOTAL: ' + cookies.length + ')';
-    }
-
-    // ========== CURL ==========
+    // ===== CURL =====
     function toCurl() {
         if (cookies.length === 0) {
             status.className = 'status status-error';
@@ -660,11 +534,13 @@
             return;
         }
         const str = cookies.map(c => c.name + '=' + c.value).join('; ');
-        const curl = 'curl -H "Cookie: ' + str + '" https://example.com';
-        showModal('📋 CURL COMMAND', '<pre style="font-size:11px;color:#88ccaa;word-break:break-all;">' + curl + '</pre>');
+        const curl = 'curl -H "Cookie: ' + str + '" https://claude.ai';
+        alert('📋 CURL COMMAND:\n\n' + curl);
+        status.className = 'status';
+        status.textContent = '🔄 CURL GENERATED';
     }
 
-    // ========== TO JSON ==========
+    // ===== TO JSON =====
     function toJson() {
         if (cookies.length === 0) {
             status.className = 'status status-error';
@@ -672,55 +548,14 @@
             return;
         }
         const json = JSON.stringify(cookies, null, 2);
-        showModal('📦 JSON', '<pre style="font-size:10px;color:#88aadd;white-space:pre-wrap;">' + json + '</pre>');
+        alert('📦 JSON:\n\n' + json);
+        status.className = 'status';
+        status.textContent = '📦 JSON GENERATED';
     }
 
-    // ========== BASE64 ==========
-    function b64encode() {
-        const raw = input.value.trim();
-        if (!raw) {
-            status.className = 'status status-error';
-            status.textContent = '⚠️ PASTE DATA';
-            return;
-        }
-        try {
-            input.value = btoa(unescape(encodeURIComponent(raw)));
-            status.className = 'status status-success';
-            status.textContent = '🔐 ENCODED';
-        } catch(e) {
-            status.className = 'status status-error';
-            status.textContent = '❌ ' + e.message;
-        }
-    }
-
-    function b64decode() {
-        const raw = input.value.trim();
-        if (!raw) {
-            status.className = 'status status-error';
-            status.textContent = '⚠️ PASTE BASE64';
-            return;
-        }
-        try {
-            input.value = decodeURIComponent(escape(atob(raw)));
-            status.className = 'status status-success';
-            status.textContent = '🔓 DECODED';
-        } catch(e) {
-            status.className = 'status status-error';
-            status.textContent = '❌ INVALID BASE64';
-        }
-    }
-
-    // ========== MODAL ==========
-    function showModal(title, html) {
-        modalTitle.textContent = title;
-        modalBody.innerHTML = html;
-        modal.classList.add('active');
-    }
-    modalClose.onclick = () => modal.classList.remove('active');
-    modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('active'); };
-
-    // ========== EVENTS ==========
+    // ===== EVENTS =====
     generateBtn.onclick = generate;
+
     clearBtn.onclick = function() {
         input.value = '';
         output.textContent = '// WAITING FOR INPUT...';
@@ -731,55 +566,36 @@
     };
 
     sampleBtn.onclick = function() {
-        input.value = `__ssid=bdf319ad-f8f9-4868-9bef-4a032b3a7e70; domain=.claude.ai; path=/; expires=1809517857
-_fbp=fb.1.1774957836982.54397352998727980; domain=.claude.ai; path=/; secure; expires=1809517838
-ajs_user_id=59c51273-41fc-4eaf-913e-6299174b3aa1; domain=.claude.ai; path=/; expires=1806494144
-sessionKey=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; domain=.claude.ai; path=/; secure; expires=1784418922
-sessionKeyLC=1778372302506; domain=.claude.ai; path=/; secure; expires=1784418922
-cf_clearance=mqLjx.tb0U36rl.PQxRYNT4xfD6hGRSa7tqEqNCtipg-1782021320-1.2.1.1-vhS1yMid1yLjXbkh9F2tW3od3mF6dGEGW7dXEf2RmLj3UOKXYxVaBlWX26CPZ_JKvdWlaAvMqAisaybyR1JV0pwVsLsxzjJ_0UbD7kOaBHmUICqKnn42ZCRMv9g0gb9hMgXeTaHbZKC8C_HK7GUnu9BlnLoQOw0Malw7T7oixFz7_gro4suGo.qnNa_jqxxJchS3G3IVZMjV4x5Ek7Ew48rUG5OfniIOksLq5zYCrCzxOi1fdYd38kFU0NVgd9gxxhc3fazDsVp5s7vOT1iyIf0qP7OWF_qTGH10AZgV4mJBETcX2vaJ2KznUe.V9ayRGx9l4Z.5.879O12H_dXaSw; domain=.claude.ai; path=/; secure; expires=1813557321`;
+        input.value = `__ssid=abc123xyz; domain=.claude.ai; path=/; secure; expires=1814820331
+sessionKey=sk-ant-sid02-test123; domain=.claude.ai; path=/; secure; expires=1785863885
+sessionKeyLC=1780260345601; domain=.claude.ai; path=/; secure; expires=1785863885
+cf_clearance=test-clearance-xyz; domain=.claude.ai; path=/; secure; expires=1811796410
+_fbp=fb.1.1234567890.1234567890; domain=.claude.ai; path=/; secure; expires=1814820330
+CH-prefers-color-scheme=dark; domain=.claude.ai; path=/; secure; expires=1811796807
+ajs_anonymous_id=claudeai.v1.test123; domain=.claude.ai; path=/; secure; expires=1811796807
+lastActiveOrg=test-org-123; domain=.claude.ai; path=/; secure; expires=1811796807`;
         status.className = 'status status-info';
         status.textContent = '📥 SAMPLE LOADED · GENERATE';
         generate();
     };
 
-    jsonBtn.onclick = function() {
-        const raw = input.value.trim();
-        if (!raw) { status.className = 'status status-error'; status.textContent = '⚠️ PASTE JSON'; return; }
-        try {
-            const data = JSON.parse(raw);
-            if (Array.isArray(data) && data.length > 0) {
-                const formatted = data.map(item => {
-                    const parts = [];
-                    parts.push((item.name||item.key||'unknown') + '=' + (item.value||item.val||''));
-                    if (item.domain || item.Domain) parts.push('domain=' + (item.domain||item.Domain));
-                    if (item.path || item.Path) parts.push('path=' + (item.path||item.Path));
-                    if (item.secure || item.Secure) parts.push('secure');
-                    if (item.expires || item.exp) parts.push('expires=' + (item.expires||item.exp));
-                    return parts.join('; ');
-                }).join('\n');
-                input.value = formatted;
+    detectBtn.onclick = function() {
+        if (document.cookie) {
+            // Filter only claude cookies
+            const raw = document.cookie;
+            const parsed = parseClaudeCookies(raw);
+            if (parsed.length > 0) {
+                input.value = raw;
                 status.className = 'status status-success';
-                status.textContent = '✅ JSON PARSED · GENERATE';
+                status.textContent = '🔍 DETECTED ' + parsed.length + ' CLAUDE COOKIES';
                 generate();
             } else {
                 status.className = 'status status-error';
-                status.textContent = '❌ JSON MUST BE ARRAY';
+                status.textContent = '❌ NO CLAUDE COOKIES FOUND IN BROWSER';
             }
-        } catch(e) {
-            status.className = 'status status-error';
-            status.textContent = '❌ ' + e.message;
-        }
-    };
-
-    detectBtn.onclick = function() {
-        if (document.cookie) {
-            input.value = document.cookie;
-            status.className = 'status status-success';
-            status.textContent = '🔍 DETECTED ' + document.cookie.split(';').length + ' COOKIES';
-            generate();
         } else {
             status.className = 'status status-error';
-            status.textContent = '❌ NO COOKIES FOUND';
+            status.textContent = '❌ NO COOKIES IN document.cookie';
         }
     };
 
@@ -793,15 +609,14 @@ cf_clearance=mqLjx.tb0U36rl.PQxRYNT4xfD6hGRSa7tqEqNCtipg-1782021320-1.2.1.1-vhS1
             return;
         }
         const preview = cookies.map((c,i) => 
-            `[${i+1}] ${c.name}=${c.value.length>50?c.value.slice(0,50)+'…':c.value} | ${c.domain||'(auto)'} | secure:${c.secure} | exp:${c.expires||'session'}`
+            `[${i+1}] ${c.name}=${c.value.length>50?c.value.slice(0,50)+'…':c.value} | secure:${c.secure} | exp:${c.expires||'session'}`
         ).join('\n');
-        showModal('👁️ PREVIEW (' + cookies.length + ')', 
-            '<pre style="font-size:10px;color:#ccbbdd;line-height:2;">' + preview + '</pre>');
+        alert('👁️ COOKIE PREVIEW (' + cookies.length + '):\n\n' + preview);
     };
 
     downloadBtn.onclick = function() {
         const text = output.textContent;
-        if (!text || text === '// WAITING FOR INPUT...' || text === '// PARSE ERROR' || text === '// NO COOKIES') {
+        if (!text || text === '// WAITING FOR INPUT...' || text === '// NO CLAUDE COOKIES' || text === '// NO COOKIES') {
             status.className = 'status status-error';
             status.textContent = '⚠️ GENERATE FIRST';
             return;
@@ -810,7 +625,7 @@ cf_clearance=mqLjx.tb0U36rl.PQxRYNT4xfD6hGRSa7tqEqNCtipg-1782021320-1.2.1.1-vhS1
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'bookmarklet_' + Date.now() + '.js';
+        a.download = 'claude_bookmarklet_' + Date.now() + '.js';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -820,17 +635,12 @@ cf_clearance=mqLjx.tb0U36rl.PQxRYNT4xfD6hGRSa7tqEqNCtipg-1782021320-1.2.1.1-vhS1
     };
 
     clearLoginBtn.onclick = clearLogin;
-    clearAllBtn.onclick = clearAll;
     exportBtn.onclick = exportCookies;
-    importBtn.onclick = importCookies;
     dedupeBtn.onclick = dedupe;
     filterSecureBtn.onclick = filterSecure;
     filterSessionBtn.onclick = filterSession;
-    mergeBtn.onclick = merge;
     curlBtn.onclick = toCurl;
     jsonExportBtn.onclick = toJson;
-    b64encBtn.onclick = b64encode;
-    b64decBtn.onclick = b64decode;
 
     toggleTableBtn.onclick = function() {
         tableVisible = !tableVisible;
@@ -862,23 +672,9 @@ cf_clearance=mqLjx.tb0U36rl.PQxRYNT4xfD6hGRSa7tqEqNCtipg-1782021320-1.2.1.1-vhS1
         }
     };
 
-    // Auto-detect
-    let timer;
-    input.oninput = function() {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            if (this.value.trim().length > 20) {
-                const test = parseCookies(this.value);
-                if (test.length > 0) {
-                    cookieCount.textContent = test.length + ' (auto)';
-                }
-            }
-        }, 700);
-    };
-
     // Init
     status.className = 'status status-info';
-    status.textContent = '💡 PASTE COOKIES & PRESS GENERATE · Ctrl+Enter';
+    status.textContent = '💡 Paste Claude cookies & press GENERATE · Ctrl+Enter';
     updateUI([]);
 })();
 </script>
