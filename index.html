@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cookies to bookmarklet</title>
+    <title>cookies to bookmarklet login</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -522,7 +522,7 @@
     <div class="header">
         <h1>
             <span class="pixel">⛏️</span> COOKIE FORGE 
-            <span style="font-size:10px;color:#5a4a6a;">v3.0</span>
+            <span style="font-size:10px;color:#5a4a6a;">v3.1</span>
         </h1>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <span class="badge gold">⚡ BOOKMARKLET</span>
@@ -552,7 +552,7 @@
             <span class="label">session</span>
         </div>
         <div class="stat-item" style="margin-left:auto;">
-            <button class="btn small danger" id="clearAllCookiesBtn">🗑️ CLEAR ALL</button>
+            <button class="btn danger small" id="clearAllCookiesBtn">🗑️ CLEAR LOGIN</button>
             <button class="btn small" id="exportJsonBtn">📤 JSON</button>
             <button class="btn small" id="importJsonBtn">📥 IMPORT</button>
         </div>
@@ -959,21 +959,80 @@
         });
     }
 
-    // ===== CLEAR ALL BROWSER COOKIES =====
-    function clearAllBrowserCookies() {
-        if (!confirm('⚠️ DELETE ALL BROWSER COOKIES FOR THIS DOMAIN?')) return;
+    // ===== CLEAR LOGIN (xóa session/login cookies) =====
+    function clearLoginCookies() {
+        if (!confirm('⚠️ DELETE ALL SESSION/LOGIN COOKIES FOR CURRENT DOMAIN?')) return;
+        
         const cookies = document.cookie.split(';');
+        let deleted = 0;
+        const domain = location.hostname;
+        const paths = ['/', '/api', '/auth', '/login', '/account', '/dashboard'];
+        
         for (let c of cookies) {
             const eq = c.indexOf('=');
             const name = eq > -1 ? c.substring(0, eq).trim() : c.trim();
-            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname + ';';
+            if (!name) continue;
+            
+            // Xóa với nhiều path khác nhau
+            for (let p of paths) {
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + ';';
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + '; domain=' + domain + ';';
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + '; domain=.' + domain + ';';
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + domain + ';';
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.' + domain + ';';
+                deleted++;
+            }
         }
-        statusDiv.textContent = '🗑️ ALL COOKIES CLEARED FOR THIS DOMAIN';
+        
+        // Xóa cả localStorage và sessionStorage liên quan đến login
+        try {
+            const keys = Object.keys(localStorage);
+            for (let k of keys) {
+                if (k.toLowerCase().includes('token') || k.toLowerCase().includes('session') || 
+                    k.toLowerCase().includes('auth') || k.toLowerCase().includes('login') ||
+                    k.toLowerCase().includes('user') || k.toLowerCase().includes('profile')) {
+                    localStorage.removeItem(k);
+                }
+            }
+            const sKeys = Object.keys(sessionStorage);
+            for (let k of sKeys) {
+                if (k.toLowerCase().includes('token') || k.toLowerCase().includes('session') || 
+                    k.toLowerCase().includes('auth') || k.toLowerCase().includes('login')) {
+                    sessionStorage.removeItem(k);
+                }
+            }
+        } catch(e) {}
+        
+        statusDiv.textContent = '🗑️ CLEARED LOGIN COOKIES & TOKENS · RELOADING...';
         statusDiv.className = 'status warning';
-        currentCookies = [];
-        updateStats([]);
-        outputDiv.textContent = '// COOKIES CLEARED';
+        
+        // Reload sau 1.5s
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    }
+
+    // ===== CLEAR ALL BROWSER COOKIES =====
+    function clearAllBrowserCookies() {
+        if (!confirm('⚠️ DELETE ALL COOKIES FOR THIS DOMAIN?')) return;
+        const cookies = document.cookie.split(';');
+        const domain = location.hostname;
+        const paths = ['/', '/api', '/auth', '/login', '/account', '/dashboard', '/app', '/admin'];
+        
+        for (let c of cookies) {
+            const eq = c.indexOf('=');
+            const name = eq > -1 ? c.substring(0, eq).trim() : c.trim();
+            if (!name) continue;
+            for (let p of paths) {
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + ';';
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + '; domain=' + domain + ';';
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=' + p + '; domain=.' + domain + ';';
+            }
+        }
+        
+        statusDiv.textContent = '🗑️ ALL COOKIES CLEARED · RELOADING...';
+        statusDiv.className = 'status warning';
+        setTimeout(() => location.reload(), 1500);
     }
 
     // ===== EXPORT / IMPORT =====
@@ -989,17 +1048,19 @@
         const a = document.createElement('a');
         a.href = url;
         a.download = 'cookies_export_' + Date.now() + '.json';
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
         statusDiv.textContent = '📤 EXPORTED ' + currentCookies.length + ' COOKIES';
         statusDiv.className = 'status success';
     }
 
     function importCookies() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.onchange = function(e) {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json';
+        fileInput.onchange = function(e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -1011,6 +1072,15 @@
                         updateStats(currentCookies);
                         const bm = buildBookmarklet(currentCookies, false);
                         outputDiv.textContent = bm;
+                        // Cập nhật input để hiển thị
+                        input.value = currentCookies.map(c => {
+                            let parts = [c.name + '=' + c.value];
+                            if (c.domain) parts.push('domain=' + c.domain);
+                            if (c.path) parts.push('path=' + c.path);
+                            if (c.secure) parts.push('secure');
+                            if (c.expires) parts.push('expires=' + c.expires);
+                            return parts.join('; ');
+                        }).join('\n');
                         statusDiv.textContent = '📥 IMPORTED ' + currentCookies.length + ' COOKIES';
                         statusDiv.className = 'status success';
                     } else {
@@ -1024,7 +1094,7 @@
             };
             reader.readAsText(file);
         };
-        input.click();
+        fileInput.click();
     }
 
     // ===== DEDUPLICATE =====
@@ -1281,7 +1351,9 @@ test_session=session-only; domain=.example.com; path=/;`;
         const a = document.createElement('a');
         a.href = url;
         a.download = 'bookmarklet_' + Date.now() + '.js';
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
         statusDiv.textContent = '💾 DOWNLOADED';
         statusDiv.className = 'status success';
@@ -1305,7 +1377,8 @@ test_session=session-only; domain=.example.com; path=/;`;
         statusDiv.className = 'status success';
     });
 
-    clearAllCookiesBtn.addEventListener('click', clearAllBrowserCookies);
+    // FIXED: Clear Login button
+    clearAllCookiesBtn.addEventListener('click', clearLoginCookies);
     clearAllCookiesBtn2.addEventListener('click', clearAllBrowserCookies);
     exportFullBtn.addEventListener('click', exportCookies);
     importFullBtn.addEventListener('click', importCookies);
