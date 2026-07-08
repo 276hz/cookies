@@ -30,7 +30,7 @@ textarea::placeholder{color:#3a3a4a;font-size:11px}
 .btn-gold{border-color:#5a4a2a;color:#ccaa44}
 .btn-gold:hover{background:#1a1a0a;border-color:#8a6a3a;color:#ffcc66}
 .btn-sm{font-size:9px;padding:4px 10px}
-.output-box{background:#050508;border:2px solid #1a1a2a;padding:14px;font-size:10px;word-break:break-all;max-height:260px;overflow-y:auto;font-family:'Courier New',monospace;color:#aa88dd;user-select:all;white-space:pre-wrap;line-height:1.8;min-height:120px}
+.output-box{background:#050508;border:2px solid #1a1a2a;padding:14px;font-size:10px;word-break:break-all;max-height:300px;overflow-y:auto;font-family:'Courier New',monospace;color:#aa88dd;user-select:all;white-space:pre-wrap;line-height:1.8;min-height:120px}
 .status{padding:8px 12px;margin-top:10px;background:#0a0a12;border-left:4px solid #3a5a3a;color:#88aa88;font-size:11px;min-height:20px;font-family:'Courier New',monospace}
 .status-error{border-left-color:#5a2a2a;color:#cc6666}
 .status-success{border-left-color:#3a7a3a;color:#66dd88}
@@ -67,8 +67,8 @@ tr:hover td{background:#0a0a18}
 
 <div class="row">
 <div class="col">
-<label>📋 PASTE CLAUDE COOKIES</label>
-<textarea id="inputArea" placeholder="Paste cookies from browser...&#10;Format: name=value; domain=.claude.ai; path=/; secure; expires=123456"></textarea>
+<label>📋 PASTE CLAUDE COOKIES (tab-separated format)</label>
+<textarea id="inputArea" placeholder="Paste cookies from browser...&#10;Format: .claude.ai\tTRUE\t/path\tTRUE\texpires\tname\tvalue"></textarea>
 <div class="btn-group">
 <button class="btn btn-primary" id="generateBtn">⚡ GENERATE</button>
 <button class="btn" id="sampleBtn">📥 SAMPLE</button>
@@ -156,7 +156,7 @@ timestamp.textContent = d.toTimeString().slice(0,8);
 updateTime();
 setInterval(updateTime, 1000);
 
-// ===== PARSE COOKIES - FIXED =====
+// ===== PARSE TAB-SEPARATED COOKIES =====
 function parseClaudeCookies(raw) {
 raw = raw.trim();
 if (!raw) return [];
@@ -179,72 +179,54 @@ if (result.length > 0) return result;
 }
 } catch(e) {}
 
-// Parse raw - FIXED: handle tabs and special chars
+// Parse tab-separated format
 const lines = raw.split(/\r?\n/).filter(l => l.trim());
 let all = [];
 
 for (let line of lines) {
-// Remove Set-Cookie prefix
-line = line.replace(/^Set-Cookie:\s*/i, '').trim();
-
-// Split by ; but keep values intact
-const parts = line.split(';').map(s => s.trim()).filter(s => s);
+// Tab-separated: domain, flag, path, flag, expires, name, value
+const parts = line.split('\t');
+if (parts.length >= 7) {
+const domain = parts[0].trim() || '.claude.ai';
+const path = parts[2].trim() || '/';
+const secure = parts[1].trim() === 'TRUE' || parts[3].trim() === 'TRUE';
+const expires = parseInt(parts[4].trim()) || 0;
+const name = parts[5].trim();
+const value = parts.slice(6).join('\t').trim();
+if (name && value) {
+all.push({ name, value, domain, path, secure, expires });
+}
+} else {
+// Fallback: try to parse as semicolon-separated
+const semicolonParts = line.split(';').map(s => s.trim()).filter(s => s);
 let curr = { name: '', value: '', domain: '.claude.ai', path: '/', secure: false, expires: 0 };
-
-for (let part of parts) {
+for (let part of semicolonParts) {
 if (part.includes('=')) {
 const idx = part.indexOf('=');
 const key = part.substring(0, idx).trim();
 const val = part.substring(idx + 1).trim();
 const k = key.toLowerCase();
-
-if (k === 'domain') {
-curr.domain = val;
-} else if (k === 'path') {
-curr.path = val || '/';
-} else if (k === 'expires') {
+if (k === 'domain') curr.domain = val;
+else if (k === 'path') curr.path = val || '/';
+else if (k === 'expires') {
 let ts = parseInt(val);
 if (!isNaN(ts)) curr.expires = ts;
+else { const d = new Date(val); if (!isNaN(d.getTime())) curr.expires = Math.floor(d.getTime()/1000); }
+} else if (k === 'secure' || k === 'httponly' || k === 'samesite') {}
 else {
-const d = new Date(val);
-if (!isNaN(d.getTime())) curr.expires = Math.floor(d.getTime()/1000);
-}
-} else if (k === 'max-age') {
-const age = parseInt(val);
-if (!isNaN(age)) curr.expires = Math.floor(Date.now()/1000) + age;
-} else if (k === 'secure' || k === 'httponly' || k === 'samesite') {
-// skip
-} else {
-if (!curr.name) {
-curr.name = key;
-curr.value = val;
-} else {
+if (!curr.name) { curr.name = key; curr.value = val; }
+else {
 if (curr.name) all.push({...curr});
 curr = { name: key, value: val, domain: '.claude.ai', path: '/', secure: false, expires: 0 };
 }
 }
 } else {
-const k = part.toLowerCase();
-if (k === 'secure') curr.secure = true;
-else if (k === 'httponly') curr.secure = true;
+if (part.toLowerCase() === 'secure') curr.secure = true;
 }
 }
-
 if (curr.name && curr.value) {
 if (!curr.domain || curr.domain === '') curr.domain = '.claude.ai';
 all.push(curr);
-}
-}
-
-// Fallback: key=value pairs
-if (all.length === 0) {
-const pairs = raw.split(/[;,\n\t]/).map(s => s.trim()).filter(s => s.includes('='));
-for (let p of pairs) {
-const idx = p.indexOf('=');
-const name = p.substring(0, idx).trim();
-const value = p.substring(idx + 1).trim();
-if (name && value) {
-all.push({ name, value, domain: '.claude.ai', path: '/', secure: false, expires: 0 });
 }
 }
 }
@@ -253,11 +235,11 @@ all.push({ name, value, domain: '.claude.ai', path: '/', secure: false, expires:
 return all.filter(c => c.domain && c.domain.includes('claude.ai'));
 }
 
-// ===== BUILD BOOKMARKLET - FIXED: proper escaping =====
-function buildBookmarklet(cookies, minified) {
-if (!cookies || cookies.length === 0) return '// NO COOKIES';
+// ===== BUILD BOOKMARKLET =====
+function buildBookmarklet(cookieList, minified) {
+if (!cookieList || cookieList.length === 0) return '// NO COOKIES';
 
-const arr = cookies.map(c => {
+const arr = cookieList.map(c => {
 const name = JSON.stringify(c.name);
 const value = JSON.stringify(c.value);
 const domain = JSON.stringify(c.domain || '.claude.ai');
@@ -269,9 +251,9 @@ return `[${name},${value},${domain},${path},${secure},${exp}]`;
 
 let code;
 if (minified) {
-code = `(function(){var c=[${arr}],d=document;c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];a[4]&&(b+="; secure");if(a[5]){var e=new Date(a[5]*1e3);b+="; expires="+e.toUTCString()}d.cookie=b});console.log("Set "+c.length+" Claude cookies");d.location.reload()})()`;
+code = `(function(){var c=[${arr}],d=document;c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];if(a[4])b+="; secure";if(a[5]&&a[5]>0){var e=new Date(a[5]*1000);b+="; expires="+e.toUTCString()}d.cookie=b});console.log("Set "+c.length+" cookies");d.location.reload()})()`;
 } else {
-code = `(function(){var c=[${arr}];c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];a[4]&&(b+="; secure");if(a[5]){var d=new Date(a[5]*1e3);b+="; expires="+d.toUTCString()}document.cookie=b});console.log("[*] Set "+c.length+" Claude cookies. Reloading...");location.reload()})();`;
+code = `(function(){var c=[${arr}];c.forEach(function(a){var b=a[0]+"="+encodeURIComponent(a[1])+"; path="+a[3]+"; domain="+a[2];if(a[4])b+="; secure";if(a[5]&&a[5]>0){var d=new Date(a[5]*1000);b+="; expires="+d.toUTCString()}document.cookie=b});console.log("Set "+c.length+" cookies");location.reload()})();`;
 }
 return 'javascript:' + code;
 }
@@ -560,14 +542,20 @@ updateUI([]);
 };
 
 sampleBtn.onclick = function() {
-input.value = `__ssid=abc123xyz; domain=.claude.ai; path=/; secure; expires=1814820331
-sessionKey=sk-ant-sid02-test123; domain=.claude.ai; path=/; secure; expires=1785863885
-sessionKeyLC=1780260345601; domain=.claude.ai; path=/; secure; expires=1785863885
-cf_clearance=test-clearance-xyz; domain=.claude.ai; path=/; secure; expires=1811796410
-_fbp=fb.1.1234567890.1234567890; domain=.claude.ai; path=/; secure; expires=1814820330
-CH-prefers-color-scheme=dark; domain=.claude.ai; path=/; secure; expires=1811796807
-ajs_anonymous_id=claudeai.v1.test123; domain=.claude.ai; path=/; secure; expires=1811796807
-lastActiveOrg=test-org-123; domain=.claude.ai; path=/; secure; expires=1811796807`;
+input.value = `.claude.ai\tTRUE\t/\tTRUE\t1811866201\t_fbp\tfb.1.1777306201447.39757542527556220
+.claude.ai\tTRUE\t/\tFALSE\t1811866299\t__ssid\t2b0026ca-0ba1-4421-b8a7-9d0217c57e19
+.claude.ai\tTRUE\t/fc\tTRUE\t1783552677\tARID\tfIVR8s7dFHzzUDWwkZ5RN2AylcBHgM6L2yKURdCY0ykeyNXtk5tTZA0kxVo1MnmWikThEsDcz5CHt2FjM6e1OD6IFNHkjKgeAzpYGH+WhxkRRgpZR91EUYKkuVt0byQMH0NDl98gPUarI+Iq5kZuwolwXiVtIkU=**CnoKiSZH2z+GNemh
+.claude.ai\tTRUE\t/\tTRUE\t1804290673\tintercom-device-id-lupk8zyo\t0d77f773-297f-43f0-ac80-fbaba6b20f67
+.claude.ai\tTRUE\t/\tTRUE\t1785863885\tintercom-session-lupk8zyo\tSjVEQ1hKRVd0amNlb1pWaFNQZXRmVHQvdmlIb1BRNENRdUtZSFk1RTVPL21aM0ppT29IaktJNURQc3Vjd2VYdzZpeEtkTG1OdVYxRjQvcW1Zd0FvRk15NlZaNUlpb2Era3VXdFNFZ3lIUmhJMm1YVGkzbjA3MlU4YTUreFRQaHdKNzVoUkoxRHJVV2IwQmFVbGkwYncrclRaSUJvQzc2R2hWODR6bjhDSDJUNUtXdldmK2NKTGsyNjNFMjlPcWZySHFiWHhQRHNrMFYzQVJHS1VBS1dnQVkyMEYzRExaM1dFWFNNNzJQMHVQaFRraXJCdG9zQ1l3eUhBeG1LVnBROWVsY09BZTJ2T3ZUL3NmSjM4L1hSYnRFeU1vU1hHWVp6RGJ0bjN3YVA0eU09LS12ZUxqZXIzN213elBUMkRZNzU2elZnPT0=--9f35eae677aa89ead15b013e627ee1a38f267158
+.claude.ai\tTRUE\t/\tTRUE\t1812898647\tuser-sidebar-pinned\ttrue
+.claude.ai\tTRUE\t/\tTRUE\t1784330729\tsessionKey\t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
+.claude.ai\tTRUE\t/\tTRUE\t1784330729\tsessionKeyLC\t1777306390677
+.claude.ai\tTRUE\t/\tTRUE\t1813469127\tcf_clearance\tMaDODLQLYonnSl95SZA7VOmpUjv_uD18iUhQ0NB7MEI-1781933128-1.2.1.1-UXyMTbGlkyutcVPrCJZrGD2.3q1zderXQsvR4Jbmb1Vzc1Ms8q06g0KNumRmpLWhbTd4jKy23z18WUtAXAuhqj8pq5vCMG02gjl78VwuO41EriugbRTaDpDmcbaULv56hNueo_SfjJ9OntmUHpqkD2q71D8xlQX8wn6gLLeMM..aENibhcjiew_iDRbdhz9XMcCk6VmepH2KnXPMBI.2M38U8fFD2G7Ov4RckUH2qLeQB7mR5EOeHgmA6QfCsEgs0hD1KQlh9mV1ySvb1kZEHAKEeHhhPyTzd5j7FEo2OjfIVitD0eYqIAeNbL_DfOvhmxBVHVs5wSUN2JosxdBnHA
+.claude.ai\tTRUE\t/\tTRUE\t1813469194\tCH-prefers-color-scheme\tdark
+.claude.ai\tTRUE\t/\tFALSE\t1785082299\t_gcl_au\t1.1.1213678054.1777306299
+.claude.ai\tTRUE\t/\tTRUE\t1813469193\tajs_anonymous_id\tclaudeai.v1.4b42eeb2-3800-411c-9a87-e7eef087c315
+.claude.ai\tTRUE\t/\tTRUE\t1813469194\tlastActiveOrg\tb99d0459-a6fc-4f11-a08a-e09f98bb4c1d
+.claude.ai\tTRUE\t/\tTRUE\t1813469194\tuser-sidebar-visible-on-load\ttrue`;
 status.className = 'status status-info';
 status.textContent = '📥 SAMPLE LOADED · GENERATE';
 generate();
@@ -578,7 +566,11 @@ if (document.cookie) {
 const raw = document.cookie;
 const parsed = parseClaudeCookies(raw);
 if (parsed.length > 0) {
-input.value = raw;
+// Convert to tab-separated format for display
+let formatted = parsed.map(c => 
+`.claude.ai\t${c.secure?'TRUE':'FALSE'}\t${c.path}\t${c.secure?'TRUE':'FALSE'}\t${c.expires||0}\t${c.name}\t${c.value}`
+).join('\n');
+input.value = formatted;
 status.className = 'status status-success';
 status.textContent = '🔍 DETECTED ' + parsed.length + ' CLAUDE COOKIES';
 generate();
@@ -665,7 +657,7 @@ generate();
 };
 
 status.className = 'status status-info';
-status.textContent = '💡 Paste Claude cookies & press GENERATE · Ctrl+Enter';
+status.textContent = '💡 Paste Claude cookies (tab-separated) & press GENERATE · Ctrl+Enter';
 updateUI([]);
 })();
 </script>
